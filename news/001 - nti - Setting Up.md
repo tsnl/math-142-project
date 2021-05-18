@@ -26,7 +26,8 @@ Basic project architecture: several modules
         - toggles to turn things on/off, e.g.
             - gravity
             - cap simulation time to frame time (Vsync)
-    
+    - DONE    
+
 The reason it is designed this way:
 - fluid simulation is slow and complex
 - by writing all this in low-level code, we can export an interface to Python that is much less frequently called

@@ -20,16 +20,16 @@ def create_sim(sim_size):
         sim_size,
         init_diffusion=1.0,
         init_viscosity=1.0,
-        time_rate=0.1
+        time_rate=0.01
     )
 
     # adding a solid square of fluid with constant velocity
     square_density = 1.0
     square_x_velocity = 10
     square_y_velocity = 10
-    square_x_offset = 20
-    square_y_offset = 20
-    square_size = 40
+    square_x_offset = 2
+    square_y_offset = 2
+    square_size = 8
 
     for x in range(square_x_offset, square_size + square_x_offset):
         for y in range(square_y_offset, square_size + square_y_offset):
@@ -52,8 +52,8 @@ def main():
     debug_font = pygame.font.SysFont("monospace", 15)
 
     draw_grid_cells = False
-    grid_size = 4
-    sim_size = 128
+    grid_size = 16
+    sim_size = 32
     window_size = sim_size * grid_size
     grid_color = (0xff, 0xff, 0xff, 0x80)
 
