@@ -3,10 +3,14 @@
 You can follow our up-to-date work at [https://github.com/tsnl/math-142-project]
 - all file-path links refer to this repository
 - all individuals referred to in the 3rd person
+- view this document [in-repository](https://github.com/tsnl/math-142-project/blob/main/news/003%20-%20nti%20-%20Project%20Report.md)
+  (so links will work)
+
+## Overview
 
 We are working on a real-time fluid simulation based on the work of Jos Stam.
-- `tsnl`/Nikhil has had a deep pre-existing fascination with fluid simulations
-- `tsnl` has recently taken MATH 151AB on numerical analysis and wanted to apply 
+- Nikhil has had a deep pre-existing fascination with fluid simulations
+- Nikhil has recently taken MATH 151AB on numerical analysis and wanted to apply 
   these techniques now that he could understand them.
     - e.g. Gauss-Seidel Relaxation
 - Stam et al published a shockingly stable method to integrate the Navier-Stokes 
@@ -19,6 +23,8 @@ We are working on a real-time fluid simulation based on the work of Jos Stam.
       solution's behavior in an intuitive way for technical and non-technical 
       audiences alike.
     - who doesn't love voxels, especially nowadays with ray-tracing?
+
+## Implementation
 
 Inspired by [this online demo](https://www.cs.utexas.edu/~teammco/projects/fluids_simulation/)...
 
@@ -57,8 +63,10 @@ as found on his website.
       - each iteration of the kernel works on this retained data
       - cf. OpenGL 3.3+, Vulkan
 - this architecture lets us divide work among programmers easily:
-  - `@tsnl` works on the kernel
-  - `@zach-wong` works on the shell
+  - Nikhil works on the kernel
+  - Zach works on the shell
+
+## Cool Feature
 
 Nikhil is especially proud of the `time rate` parameter:
 - a simple trick borrowed from video-games
@@ -69,8 +77,11 @@ Nikhil is especially proud of the `time rate` parameter:
 - **leveraging Stam's method's stability over large/varying `dt`**
   - this technique _never drops frames_, even in slow-motion, preserving an even frame-time
   - this technique _never rarely loses precision upon being sped up_
-  - this technique really makes fluid simulations look pretty
+  - this technique really makes fluid simulations look pretty by letting us view them in slow-motion
   - this feature helped debug our fluid states, by letting us examine extremely quick events.
+  - time-rate can be keyed on a curve to slow down when two fluid blobs collide
+
+## Theory
 
 Recognizing that it is easier to understand something once implemented,
 **we are now working on rigorously understanding the mathematics used**
@@ -80,7 +91,7 @@ Recognizing that it is easier to understand something once implemented,
 - How can we use quiver and countour plots to better illustrate velocity and density?
 - What do phase plots look like?
 
-Summary:
+## Summary
 - Nikhil delivered the kernel and demos 1-3 on May 18
 - Zach is working on the shell
 - Haoran is working on the mathematics
