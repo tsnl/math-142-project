@@ -8,10 +8,6 @@ def run(width, height, caption, render_cb=None, init_cb=None, desired_updates_pe
     # Validating params:
     #
 
-    if init_cb is None:
-        def init_cb(screen):
-            pass
-
     if render_cb is None:
         # re-defining render_cb to overwrite previous,
         # un-callable definition.
@@ -30,12 +26,15 @@ def run(width, height, caption, render_cb=None, init_cb=None, desired_updates_pe
 
     debug_font = pygame.font.SysFont("monospace", 20)
 
+    pygame_widgets_event_listener_list = []
+
     clock = pygame.time.Clock()
 
     screen: pygame.Surface = pygame.display.set_mode((width, height))
 
     # allowing client to initialize using the screen instance:
-    init_cb(screen)
+    if init_cb is not None:
+        init_cb(screen, pygame_widgets_event_listener_list)
 
     # Clearing the screen initially:
     # DEBUG: filling screen with magenta/fuchsia
@@ -43,8 +42,14 @@ def run(width, height, caption, render_cb=None, init_cb=None, desired_updates_pe
 
     is_running = True
     while is_running:
+        #
         # Polling for user input:
-        events = pygame.event.get()
+        #
+
+        # storing events as a list for later (in case it is an iterator)
+        events = list(pygame.event.get())
+
+        # Managing our inputs:
         for event in events:
             # checking for 'quit' events:
             if event.type == pygame.QUIT:
@@ -52,7 +57,14 @@ def run(width, height, caption, render_cb=None, init_cb=None, desired_updates_pe
 
             # TODO: check for mouse input events
 
+        # Managing Pygame Widgets events:
+        for listener in pygame_widgets_event_listener_list:
+            listener.listen(events)
+
+        #
         # Rendering:
+        #
+
         screen.fill(initial_fill_color)
         render_cb(screen)
         pygame.display.flip()

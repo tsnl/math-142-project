@@ -10,6 +10,7 @@ import math
 from datetime import datetime
 
 import pygame
+from pygame.widgets import *
 
 import app
 import fluids
@@ -65,11 +66,16 @@ def main():
 
     dimensions_in_pixels = None
 
-    def init_cb(screen):
-        nonlocal dimensions_in_pixels
+    text_box1 = None
+
+    def init_cb(screen, event_listener_list):
+        nonlocal dimensions_in_pixels, text_box1
 
         # TODO: implement me for run-demo4: initialize things before the game loop
         dimensions_in_pixels = screen.get_size()
+
+        text_box1 = TextBox(...)
+        event_listener_list.append(text_box1)
 
         print(f"Initializing with mode={dimensions_in_pixels}")
 
