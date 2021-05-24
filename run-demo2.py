@@ -34,7 +34,7 @@ def create_sim():
     )
 
     # enable slow-mo for debug:
-    sim.time_rate = 0.001
+    sim.time_rate = 1
 
     # adding a solid square of fluid with constant velocity
     square_density = 1.0

@@ -63,6 +63,16 @@ def main():
     frame_index = 0
     last_frame_time = datetime.now()
 
+    dimensions_in_pixels = None
+
+    def init_cb(screen):
+        nonlocal dimensions_in_pixels
+
+        # TODO: implement me for run-demo4: initialize things before the game loop
+        dimensions_in_pixels = screen.get_size()
+
+        print(f"Initializing with mode={dimensions_in_pixels}")
+
     def render_cb(screen):
         nonlocal frame_index, last_frame_time
 
@@ -123,7 +133,7 @@ def main():
         # debug: ensure we actually render
         # screen.fill((255, 0, 0))
 
-    app.run(window_size, window_size, "demo-3", render_cb, desired_updates_per_sec=60)
+    app.run(window_size, window_size, "demo-3", init_cb=init_cb, render_cb=render_cb, desired_updates_per_sec=60)
 
 
 if __name__ == "__main__":

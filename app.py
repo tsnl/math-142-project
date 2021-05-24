@@ -3,10 +3,14 @@ import pygame
 initial_fill_color = (255, 0, 255, 0xff)
 
 
-def run(width, height, caption, render_cb=None, desired_updates_per_sec=60):
+def run(width, height, caption, render_cb=None, init_cb=None, desired_updates_per_sec=60):
     #
     # Validating params:
     #
+
+    if init_cb is None:
+        def init_cb(screen):
+            pass
 
     if render_cb is None:
         # re-defining render_cb to overwrite previous,
@@ -30,6 +34,10 @@ def run(width, height, caption, render_cb=None, desired_updates_per_sec=60):
 
     screen: pygame.Surface = pygame.display.set_mode((width, height))
 
+    # allowing client to initialize using the screen instance:
+    init_cb(screen)
+
+    # Clearing the screen initially:
     # DEBUG: filling screen with magenta/fuchsia
     screen.fill(initial_fill_color)
 
