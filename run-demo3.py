@@ -10,7 +10,6 @@ import math
 from datetime import datetime
 
 import pygame
-from pygame.widgets import *
 
 import app
 import fluids
@@ -73,9 +72,6 @@ def main():
 
         # TODO: implement me for run-demo4: initialize things before the game loop
         dimensions_in_pixels = screen.get_size()
-
-        text_box1 = TextBox(...)
-        event_listener_list.append(text_box1)
 
         print(f"Initializing with mode={dimensions_in_pixels}")
 

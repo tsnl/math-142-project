@@ -2,3 +2,4 @@ pygame
 numpy
 cython
 matplotlib
+pygame_widgets

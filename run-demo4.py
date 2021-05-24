@@ -5,9 +5,12 @@ import math
 from datetime import datetime
 
 import pygame
+from pygame_widgets import Button
+from pygame_widgets import TextBox, Slider
 
 import app
 import fluids
+
 
 def create_sim(sim_size):
     sim = fluids.simulator.Simulator(
@@ -39,6 +42,7 @@ def create_sim(sim_size):
 
     return sim
 
+
 def main():
     # configuring:
     pygame.font.init()
@@ -55,6 +59,50 @@ def main():
 
     frame_index = 0
     last_frame_time = datetime.now()
+
+    #
+    # defining handler callbacks:
+    #
+
+    def output():
+        # Get text in the textbox
+        print(textbox.getText())
+
+    reset_button = None
+    textbox = None
+    viscosity_text = None
+    viscosity_input = None
+    slider = None
+
+    def init_cb(screen, listener_list):
+        nonlocal reset_button, textbox, viscosity_text, viscosity_input, slider
+
+        reset_button = Button(
+            screen, 50, 50, 50, 25, text='Reset Simulation',
+            fontSize=10, margin=5,
+            inactiveColour=(125, 125, 125), hoverColour=(200, 0, 0),
+            pressedColour=(0, 255, 0), radius=0,
+            onRelease=lambda: pygame.quit()
+        )
+        textbox = TextBox(
+            screen, 100, 500, 300, 80, fontSize=50,
+            borderColour=(255, 0, 0), textColour=(0, 200, 0),
+            onSubmit=output, radius=10, borderThickness=5
+        )
+        viscosity_text = TextBox(
+            screen, 100, 250, 75, 25, fontSize=15, colour=(255, 255, 255),
+            borderColour=(255, 255, 255), textColour=(0, 0, 0),
+            onSubmit=output, radius=0, borderThickness=5
+        )
+        viscosity_text.setText("Viscosity: ")
+        viscosity_input = TextBox(
+            screen, 175, 250, 100, 25, fontSize=15, colour=(255, 255, 255),
+            borderColour=(0, 0, 0), textColour=(0, 200, 0),
+            onSubmit=output, radius=0, borderThickness=5
+        )
+        slider = Slider(screen, 100, 100, 300, 40, min=1, max=100, step=1)
+
+        listener_list += [reset_button, textbox, slider, viscosity_input]
 
     def render_cb(screen):
         nonlocal frame_index, last_frame_time
@@ -113,74 +161,21 @@ def main():
         frame_index += 1
         last_frame_time = this_frame_time
 
+        # drawing GUI widgets:
+        slider.draw()
+        viscosity_text.draw()
+        viscosity_input.draw()
+        reset_button.draw()
+
         # debug: ensure we actually render
         # screen.fill((255, 0, 0))
 
-    app.run(window_size, window_size, "demo-3", render_cb, desired_updates_per_sec=60)
+    # running the app:
+    app.run(
+        window_size, window_size,
+        "demo-3", init_cb=init_cb, render_cb=render_cb, desired_updates_per_sec=60
+    )
 
-import pygame
-from pygame_widgets import Button
-from pygame_widgets import TextBox, Slider
-def output():
-    # Get text in the textbox
-    print(textbox.getText())
-    
-pygame.init()
-win = pygame.display.set_mode((600, 600))
-
-
-resetButton = Button(
-            win, 50, 50, 50, 25, text='Reset Simulation',
-            fontSize=10, margin=5,
-            inactiveColour=(125, 125, 125), hoverColour=(200,0,0),
-            pressedColour=(0, 255, 0), radius=0,
-            onRelease=lambda: pygame.quit()
-         )
-
-
-textbox = TextBox(win, 100, 500, 300, 80, fontSize=50,
-                  borderColour=(255, 0, 0), textColour=(0, 200, 0),
-                  onSubmit=output, radius=10, borderThickness=5)
-
-viscText = TextBox(win, 100, 250, 75, 25, fontSize=15,colour=(255,255,255),
-                  borderColour=(255, 255, 255), textColour=(0, 0, 0),
-                  onSubmit=output, radius=0, borderThickness=5)
-
-viscInput = TextBox(win, 175, 250, 100, 25, fontSize=15,colour=(255,255,255),
-                  borderColour=(0, 0, 0), textColour=(0, 200, 0),
-                  onSubmit=output, radius=0, borderThickness=5)
-
-slider = Slider(win, 100, 100,300, 40, min=1, max=100, step=1)
-
-run = True
-while run:
-    events = pygame.event.get()
-    for event in events:
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            run = False
-            pygame.quit()
-
-    win.fill((255, 255, 255))
-    
-    slider.listen(events)
-    slider.draw()
-    #textbox.setText(slider.getValue())
-    viscText.setText("Viscosity: ")
-    viscText.draw()
-    viscInput.listen(events)
-    viscInput.draw()
-    resetButton.listen(events)
-    resetButton.draw()
-    textbox.listen(events)
-    
-    textbox.draw()
-    #textbox.onSubmit(args, kwargs)
-    pygame.display.update()
-
-    
-
-    
 
 if __name__ == "__main__":
     main()
