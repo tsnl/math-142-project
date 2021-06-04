@@ -107,11 +107,8 @@ def reset_sim(sim, velocity_field_code, clear_all=True):
 
         for x in range(0, square_size):
             for y in range(0, square_size):
-                vx = 0
-                vy = -100
-
-                vx *= strength_factor
-                vy *= strength_factor
+                vx = 0 * strength_factor
+                vy = -100 * strength_factor
 
                 if velocity_field_code == VELOCITY_FIELD_CODE_UP:
                     sim.add_velocity((x, y), (vx, vy))

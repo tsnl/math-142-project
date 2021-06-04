@@ -1,0 +1,146 @@
+<html>
+    <head>
+        <style>
+            th, td {
+                border: solid 1px;
+                margin: 0;
+                padding: 4px;
+            }
+        </style>
+    </head>
+
+    <body>
+
+        <h2>
+            Nikhil's Presentation Liners
+        </h2>
+
+        <table>
+            <tr>
+                <th>action</th>
+                <th>speech</th>
+            </tr>
+
+            <tr>
+                <td>D = 0, TR = 0.05, GL = 1, Reset</td>
+                <td>the brightness of each cell indicates density: blue being most dense, and white least. we track density and velocity for each cell.</td>
+            </tr>
+
+            <tr>
+                <td>D = 0.0625, TR = 1.0, Reset</td>
+                <td>we can set things in motion by letting particles diffuse, then speeding things up</td>
+            </tr>
+
+            <tr>
+                <td>Reset/Return Loop</td>
+                <td>and run our simulation over and over again</td>
+            </tr>
+
+            <tr>
+                <td>TR = 0.1, Reset</td>
+                <td>slowing things down again</td>
+            </tr>
+
+            <tr>
+                <td>VF = Downward, Reset</td>
+                <td>and making changes</td>
+            </tr>
+
+            <tr>
+                <td>D = 1.0, <strong>Continue</strong></td>
+                <td>at any point in the program</td>
+            </tr>
+
+            <tr>
+                <td>D = 0.03125, Reset</td>
+                <td>to understand different parameters!</td>
+            </tr>
+
+            <tr>
+                <td>TR = 0.01, GL = 0, D = 1, VF = Spiral, Reset</td>
+                <td>Welcome to Import Antigravity's Fluid Simulation</td>
+            </tr>
+
+            <tr>
+                <td>Open <a href="https://www.dgp.toronto.edu/public_user/stam/reality/Research/pdf/GDC03.pdf">Stam Paper</a></td>
+                <td>(Stam Walkthrough)</td>
+            </tr>
+
+            <tr>
+                <td>Open <a href="https://en.wikipedia.org/wiki/Gauss&ndash;Seidel_method">Gauss-Seidel Method</a></td>
+                <td>Density diverges to inf+uniform when velocity gets too big, but can 'clamp' in practice, run more iterations, or use a different solver with lower order error (e.g. Runge-Kutta methods).</td>
+            </tr>
+
+            <tr>
+                <td></td>
+                <td>Questions?</td>
+            </tr>
+
+        </table>
+
+        <hr/>
+
+        <h2>Raw</h2>
+
+        <code style="white-space: pre-wrap">
+        - _sets diffusion to 0, tr = 0.05, grid lines on_
+        - _returns_
+            - "at first, there was nothing but a solid cube of fluid, suspended in cellular space."
+            - _pause_
+        - _sets diffusion to 0.0625_
+            - "and then, things were set in motion."
+        - _returns_
+            - "our simulation of bulk properties expands"
+            - "like a dense gas cloud slowly filling a room"
+            - _pause_
+        - fortunately, we can speed things up
+            - set time rate to 1.0
+            - watch simulation pass too quickly
+        - and run things over and over again
+            - _reset simulation multiple times in a row_
+            - _should be very fast_
+        - while learning from our mistakes
+            - _lower time rate to 0.1_
+            - play back again
+        - and making changes
+            - add downward velocity field
+        - as many times as we want
+            - set time rate to 0.01
+        - simulating both gases and liquids depending on the diffusion constant
+            - set diffusion constant to 0.03125 
+
+        - **welcome to `import antigravity`'s 2d fluid simulation tool**
+        - turn off grid lines
+        - time rate 0.01
+        - reset, add spiral, diff = 1, 
+        - run in background with code explanation
+
+        SWITCH TO BROWSER
+
+        - all of our work was based on this paper by Jos Stam,
+            - who discusses the strengths of our diffuse solver in greater depth
+            - the 'diffuse' step iteratively transfers weighted density
+                - 20 times using Gauss-Seidel method
+                - can also use multi-grid to avoid small t-step for smooth surface
+            - **stability** of this method as posed is key: converges for small perturbations, so can use
+            numerical method like Gauss-Seidel.
+            - e.g. setting large time rate does cause divergence, but this can be limited and compensated for
+                - e.g. by running more iterations
+        
+        - FIXME: density balloons to infinity?
+
+        - also had to apply visualization techniques
+            - e.g. density range mimics changing aperture of human eye, highlighting contrast, not abs-val
+            - haven't found this 'density aperture' elsewhere, but a useful trick for you ;)
+            - open qs:
+                - e.g. how to encode velocity?
+                - e.g. make mean 0.5f brightness with +- variation: easy enough, just no time :(
+
+        - conclusion: this tool debugged itself
+            - 'time rate', velocity fields, and 'density aperture' came together really well
+            - for me, this course is about exploring DEs with Python, and this tool accomplishes this.
+
+        - Questions?
+        </code>
+    </body>
+</html>
