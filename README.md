@@ -8,6 +8,11 @@
 
 A project on fluid simulation for MATH 142.
 
+Team Members:
+1.  Nikhil
+2.  Haoran
+3.  Zach
+
 ## Getting Started
 
 0.  First, ensure you have `python3.9` installed with `pip`.
