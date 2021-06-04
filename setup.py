@@ -23,7 +23,6 @@ def list_contains(bigger_list, smaller_list):
 
     for i in range(len(bigger_list) - len(smaller_list) + 1):
         slice = bigger_list[i:i+len(smaller_list)]
-        print(slice)
         if slice == smaller_list:
             return True
     else:
