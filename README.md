@@ -1,5 +1,11 @@
 # math-142-project
 
+<!-- For some infernal reason, iMovie will not export weird aspect ratios. Good enough, I say. -->
+<img
+    src="doc/Project Demo 1.gif"
+    style="object-fit: none; object-position: -290px 0; width: 700px; height: 720px"
+ />
+
 A project on fluid simulation for MATH 142.
 
 ## Getting Started
