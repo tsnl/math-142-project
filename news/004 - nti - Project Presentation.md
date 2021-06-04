@@ -1,6 +1,6 @@
 ## Nikhil's Presentation Liners
 
-- _sets diffusion to 0, tr = 0.1, grid lines on_
+- _sets diffusion to 0, tr = 0.05, grid lines on_
 - _returns_
     - "at first, there was nothing but a solid cube of fluid, suspended in cellular space."
     - _pause_
@@ -23,18 +23,24 @@
     - add downward velocity field
 - as many times as we want
     - set time rate to 0.01
-    - turn off grid lines
+- simulating both gases and liquids depending on the diffusion constant
+    - set diffusion constant to 0.03125 
 
 - **welcome to `import antigravity`'s 2d fluid simulation tool**
-  - _set spiral field, TR 0.0001, V/D=1_
-  - reset, run in background with code explanation
+  - turn off grid lines
+  - time rate 0.01
+  - reset, add spiral, diff = 1, 
+  - run in background with code explanation
+
+SWITCH TO BROWSER
 
 - all of our work was based on this paper by Jos Stam,
     - who discusses the strengths of our diffuse solver in greater depth
     - the 'diffuse' step iteratively transfers weighted density
         - 20 times using Gauss-Seidel method
         - can also use multi-grid to avoid small t-step for smooth surface
-    - **stability** of this method is key: converges for small perturbations
+    - **stability** of this method as posed is key: converges for small perturbations, so can use
+      numerical method like Gauss-Seidel.
     - e.g. setting large time rate does cause divergence, but this can be limited and compensated for
         - e.g. by running more iterations
 
@@ -50,4 +56,3 @@
     - for me, this course is about exploring DEs with Python, and this tool accomplishes this.
 
 - Questions?
--

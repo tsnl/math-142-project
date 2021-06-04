@@ -133,7 +133,7 @@ def main():
     # debug_font = pygame.font.SysFont("monospace", 15)
     debug_font = pygame.font.Font("./fonts/Nanum_Gothic_Coding/NanumGothicCoding-Regular.ttf", 18)
     draw_grid_lines = False
-    grid_size = 16
+    grid_size = 24
     sim_size = 32
     window_size = sim_size * grid_size
     grid_color = (0xa0, 0xa0, 0xc0)
@@ -258,7 +258,7 @@ def main():
         assert min_density < max_density
         report = f"[ix={frame_index} | dt={frame_time_s} | fps={frame_rate_s} | {density_s}]"
         stats_label = debug_font.render(report, True, text_color)
-        screen.blit(stats_label, (window_size - 500, window_size - 25))
+        screen.blit(stats_label, (window_size - 510, window_size - 25))
 
         frame_index += 1
         last_frame_time = this_frame_time
@@ -266,7 +266,7 @@ def main():
         # drawing instructions to press 'escape' or 'space' to open the main menu:
         text = f"Press [SPACE], [ESCAPE], or [RETURN] to open the menu."
         help_label = debug_font.render(text, True, text_color)
-        screen.blit(help_label, (window_size - 500, window_size - 50))
+        screen.blit(help_label, (window_size - 510, window_size - 50))
 
         # debug: ensure we actually render
         # screen.fill((255, 0, 0))
