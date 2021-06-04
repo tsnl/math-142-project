@@ -35,7 +35,7 @@ def create_sim(
         init_diffusion=diffusion_input,
         init_viscosity=viscosity_input,
         time_rate=time_rate_input
-        
+
     )
     reset_sim(sim, velocity_field_code)
     return sim
@@ -52,7 +52,7 @@ def reset_sim(sim, velocity_field_code, clear_all=True):
     if clear_all:
         # wiping out everything currently in the sim cells: density and velocity tables.
         sim.clear_density_and_velocity()
-    
+
         # re-adding a centered solid square of fluid with constant velocity
         for x in range(square_x_offset, square_size + square_x_offset):
             for y in range(square_y_offset, square_size + square_y_offset):
@@ -72,14 +72,14 @@ def reset_sim(sim, velocity_field_code, clear_all=True):
                 vx = strength_factor * (10 * (x - (square_size/2 + square_x_offset)))
                 vy = strength_factor * (10 * (y - (square_size/2 + square_y_offset)))
                 sim.add_velocity((x, y), (vx, vy))
-                
+
     elif velocity_field_code == VELOCITY_FIELD_CODE_SPIRAL:
         strength_factor = 0.05
 
         for x in range(int(square_x_offset/2), 2*square_size + square_x_offset):
             for y in range(int(square_y_offset/2), 2*square_size + square_y_offset):
                 # modulating velocity by Y-component
-                
+
                 x_diff = x - (square_size//2 + square_x_offset)
                 y_diff = y - (square_size//2 + square_y_offset)
                 if x_diff > 0:
@@ -91,9 +91,9 @@ def reset_sim(sim, velocity_field_code, clear_all=True):
                 elif (x_diff == 0) && (y_diff > 0):
                     theta = math.pi/2
                 """
-                    
+
                 rad = math.sqrt(x_diff**2 + y_diff**2)
-                
+
                 vx = 100*rad*(math.sin(theta))
                 vy = 100*rad*(math.cos(theta))
 
@@ -131,12 +131,12 @@ def main():
     # configuring:
     pygame.font.init()
     # debug_font = pygame.font.SysFont("monospace", 15)
-    debug_font = pygame.font.Font("./fonts/Nanum_Gothic_Coding/NanumGothicCoding-Regular.ttf", 15)
+    debug_font = pygame.font.Font("./fonts/Nanum_Gothic_Coding/NanumGothicCoding-Regular.ttf", 18)
     draw_grid_lines = False
     grid_size = 16
     sim_size = 32
     window_size = sim_size * grid_size
-    grid_color = (0xff, 0xff, 0xff, 0x80)
+    grid_color = (0xa0, 0xa0, 0xc0)
     active_v_field_menu_index = 0
 
     # setting up initial state for the simulation using config:
@@ -178,6 +178,10 @@ def main():
         # presenting:
         #
 
+        #
+        # drawing densities:
+        #
+
         for grid_x in range(sim.size):
             for grid_y in range(sim.size):
                 # updating this cell's pixel rectangle:
@@ -193,28 +197,55 @@ def main():
                 density = density_array[cell_index]
                 vx, vy = vx_array[cell_index], vy_array[cell_index]
 
-                # converting the density to a constant in [0,255]
-                # converting the velocities into constants in [0,255]
-                # - NOTE: varying the 'brightness' of velocity linearly with density:
+                # normalizing density given min/max of aperture:
                 density_normalized = (density - min_density) / max_density
 
-                density_byte = normal_float_to_byte(density_normalized)
+                # density_byte = normal_float_to_byte(density_normalized)
 
                 # ensuring non-zero density is represented by the faintest value possible:
-                if density > 0 and density_byte == 0:
-                    density_byte = 1
+                # if density > 0 and density_byte == 0:
+                #     density_byte = 1
 
-                # encoding density as an RGBA tuple:
-                color = (density_byte, density_byte, density_byte)
+                # selecting 'white' color:
+                # color = (density_byte, density_byte, density_byte)
+
+                # shades of blue:
+                blue_stop = (0x00, 0xbb, 0xff)
+                white_stop = (0xff, 0xff, 0xff)
+                color = blend_rgb_colors(blue_stop, white_stop, density_normalized)
 
                 # setting the color:
                 screen.fill(color, rect=pixel_rect)
 
-                # drawing a bounding grid rectangle:
-                if draw_grid_lines:
-                    pygame.draw.rect(screen, grid_color, pixel_rect, width=1)
-
                 # screen.set_at((grid_x, grid_y), color)
+
+        #
+        # drawing grid:
+        #
+
+        if draw_grid_lines:
+            for grid_x in range(sim.size):
+                pixel_x = grid_size * grid_x
+                pygame.draw.line(
+                    screen, grid_color,
+                    start_pos=(pixel_x, 0),
+                    end_pos=(pixel_x, window_size)
+                )
+
+            for grid_y in range(sim.size):
+                pixel_y = grid_size * grid_y
+                pygame.draw.line(
+                    screen, grid_color,
+                    start_pos=(0, pixel_y),
+                    end_pos=(window_size, pixel_y)
+                )
+
+
+        #
+        # text drawing:
+        #
+
+        text_color = (0x00, 0x00, 0x00, 0xae)
 
         # drawing FPS, updating accounting statistics:
         this_frame_time = datetime.now()
@@ -226,7 +257,7 @@ def main():
         density_s = f"ρ ∈ [{min_density:.3f}, {max_density:.3f}]"
         assert min_density < max_density
         report = f"[ix={frame_index} | dt={frame_time_s} | fps={frame_rate_s} | {density_s}]"
-        stats_label = debug_font.render(report, False, (0xff, 0xff, 0xff, 0xff))
+        stats_label = debug_font.render(report, True, text_color)
         screen.blit(stats_label, (window_size - 500, window_size - 25))
 
         frame_index += 1
@@ -234,7 +265,7 @@ def main():
 
         # drawing instructions to press 'escape' or 'space' to open the main menu:
         text = f"Press [SPACE], [ESCAPE], or [RETURN] to open the menu."
-        help_label = debug_font.render(text, False, (0xff, 0xff, 0xff, 0xff))
+        help_label = debug_font.render(text, True, text_color)
         screen.blit(help_label, (window_size - 500, window_size - 50))
 
         # debug: ensure we actually render
@@ -380,7 +411,7 @@ def main():
     # running the app:
     app.run(
         window_size, window_size,
-        "demo-3",
+        "demo-4",
         init_cb=init_cb,
         render_cb=render_cb,
         run_menu_cb=run_main_menu_cb,
@@ -392,9 +423,39 @@ def main():
 def normal_float_to_byte(x, default=0):
     try:
         xi = abs(int(255.0 * x))
-        return max(0, min(255, xi))
+        return clamp(xi, 0, 255)
     except ValueError:
         return default
+
+
+def blend_rgb_colors(color1, color2, x):
+    r1, g1, b1 = color1
+    r2, g2, b2 = color2
+    return (
+        lerp(x, r1, r2),
+        lerp(x, g1, g2),
+        lerp(x, b1, b2)
+    )
+
+
+def lerp(x, a, b):
+    """
+    linearly interpolate between two stops
+    :param x: a value in [0,1] where 0 indicates all a, and 1 indicates all b
+    :param a: the 'a' stop
+    :param b: the 'b' stop
+    :return: a value y in [a,b] such that (y-a)/(b-a) = 1-x
+    """
+    return a + (1-x)*(b-a)
+
+
+def clamp(x, a, b):
+    if x < a:
+        return a
+    elif x > b:
+        return b
+    else:
+        return x
 
 
 if __name__ == "__main__":
