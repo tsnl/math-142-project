@@ -106,7 +106,7 @@ def run_simulation(
 
             # checking for keyboard events to open the main menu:
             if event.type == pygame.KEYDOWN:
-                if event.key in (pygame.K_RETURN, pygame.K_SPACE):
+                if event.key in (pygame.K_RETURN, pygame.K_SPACE, pygame.K_ESCAPE):
                     # request return to main-menu:
                     is_running = False
                     keep_running = True
