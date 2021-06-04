@@ -19,22 +19,24 @@ Team Members:
     Further ensure you have a working C++ compiler.
     Open a terminal with the directory containing this file as the working directory.
     Enter each command below to set-up this project.
-    The commands are meant for Unix systems.
-    If you use Windows, getting a Python toolchain working may be tricky, but if you 
-    have one, translating the below commands will be a cinch. 
-    I've not tried running GUI apps under WSL2, but apparently, it is now supported?
+    - NOTE: The commands are meant for Unix systems.
+      -  If you use Windows, getting a Python toolchain working may be tricky, but if you 
+      -  have one, translating the below commands will be a cinch. 
+      -  I've not tried running GUI apps under WSL2, but apparently, it is now supported?
 
-    1.  Run `$ /usr/bin/env python3.9 ./setup.py build_ext --inplace`
-        
-        This command compiles an extension 
-
-    2.  Run `$ /usr/bin/env python3.9 -m pip install -r ./requirements.txt`
+    1.  Run `$ /usr/bin/env python3.9 -m pip install -r ./requirements.txt`
 
         This command installs all Python package dependencies to the system-wide 
         location.
 
         If you would rather not pollute your system installations, try
         `virtualenv`s-- the same `requirements.txt` file is used.
+
+    2.  Run `$ /usr/bin/env python3.9 ./setup.py build_ext --inplace`
+        
+        This command compiles a low-level extension module used by the project.
+
+
 
 1.  Run 
 
