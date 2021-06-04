@@ -1,0 +1,10 @@
+# exclude all pre-compiled python files:
+*.pyc
+*.c     # unbelievable, but true
+*.so
+*.dll
+__pycache__
+
+# exclude all .DS_Store files on macOS:
+.DS_Store
+

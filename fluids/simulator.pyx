@@ -10,6 +10,7 @@ from ctypes import *
 import numpy as np
 
 from libc.stdlib cimport malloc, calloc, free
+from libc.string cimport memset
 
 
 #
@@ -117,6 +118,9 @@ class Simulator(object):
         amount_x, amount_y = amount_xy
         fg_add_velocity(singleton_fg, x, y, amount_x, amount_y)
 
+    def clear_density_and_velocity(self):
+        fg_soft_reset(singleton_fg)
+
 
 #
 #
@@ -198,6 +202,18 @@ cdef (FluidGrid*) new_fg(int n, int diffusion, int viscosity, float dt):
     z = fg.vx_prev[0]
 
     return fg
+
+
+cdef fg_soft_reset(FluidGrid* fg):
+    voxel_count = fg.size * fg.size
+
+    memset(fg.density, 0, voxel_count * sizeof(float))
+    memset(fg.vx, 0, voxel_count * sizeof(float))
+    memset(fg.vy, 0, voxel_count * sizeof(float))
+
+    memset(fg.density_prev, 0, voxel_count * sizeof(float))
+    memset(fg.vx_prev, 0, voxel_count * sizeof(float))
+    memset(fg.vy_prev, 0, voxel_count * sizeof(float))
 
 
 cdef del_fg(FluidGrid* fg):

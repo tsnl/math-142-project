@@ -5,15 +5,31 @@ import math
 from datetime import datetime
 
 import pygame
-from pygame_widgets import Button
-from pygame_widgets import TextBox, Slider
 import pygame_menu
 
 import app
 import fluids
 
 
-def create_sim(sim_size, viscosity_input, diffusion_input, time_rate_input, velocity_field):
+VELOCITY_FIELD_CODE_NONE = 'n'
+VELOCITY_FIELD_CODE_OUTFLOW = 'o'
+VELOCITY_FIELD_CODE_SPIRAL = 's'
+VELOCITY_FIELD_CODE_UP = 'u'
+VELOCITY_FIELD_CODE_DOWN = 'd'
+
+DEFAULT_VELOCITY_FIELD_CODE = VELOCITY_FIELD_CODE_NONE
+DEFAULT_VISCOSITY_VALUE = 1
+DEFAULT_DIFFUSION_VALUE = 1
+DEFAULT_TIME_RATE_VALUE = 0.001
+
+
+def create_sim(
+        sim_size,
+        viscosity_input=DEFAULT_VISCOSITY_VALUE,
+        diffusion_input=DEFAULT_DIFFUSION_VALUE,
+        time_rate_input=DEFAULT_TIME_RATE_VALUE,
+        velocity_field_code=DEFAULT_VELOCITY_FIELD_CODE
+):
     sim = fluids.simulator.Simulator(
         sim_size,
         init_diffusion=diffusion_input,
@@ -21,45 +37,54 @@ def create_sim(sim_size, viscosity_input, diffusion_input, time_rate_input, velo
         time_rate=time_rate_input
         
     )
-    reset_sim(sim, velocity_field)
+    reset_sim(sim, velocity_field_code)
     return sim
-    
-def reset_sim(sim, velocity_field):
-    #need a function called clear to wipe all densities and velocities
-    
-    # adding a solid square of fluid with constant velocity
+
+
+def reset_sim(sim, velocity_field_code, clear_all=True):
+    # positioning 'the square':
     square_density = 1.0
-    square_x_velocity = 10
-    square_y_velocity = 10
-    square_x_offset = 10
-    square_y_offset = 10
     square_size = 8
+    square_x_offset = (sim.size - square_size) // 2
+    square_y_offset = (sim.size - square_size) // 2
+
+    # clearing simulation if requested:
+    if clear_all:
+        # wiping out everything currently in the sim cells: density and velocity tables.
+        sim.clear_density_and_velocity()
     
-    for x in range(square_x_offset, square_size + square_x_offset):
-        for y in range(square_y_offset +  int(square_y_offset/4), square_size + int(3*square_y_offset/4)):
-            sim.add_density((x, y), square_density)
-    
-    if (velocity_field == 'Outflow'):
-        print('Outflow velocity confirmed')
+        # re-adding a centered solid square of fluid with constant velocity
+        for x in range(square_x_offset, square_size + square_x_offset):
+            for y in range(square_y_offset, square_size + square_y_offset):
+                sim.add_density((x, y), square_density)
+
+    # FIXME: why is the velocity field only applied to the initial square?
+    #       - why not the whole state?
+    #       - must change bounds of `range` below: simple fix.
+
+    # applying the appropriate initial velocity field:
+    if velocity_field_code == VELOCITY_FIELD_CODE_OUTFLOW:
+        strength_factor = 1.0
+
         for x in range(square_x_offset, square_size + square_x_offset):
             for y in range(square_y_offset, square_size + square_y_offset):
                 # modulating velocity by Y-component
-                
-                vx = 10*(x - (square_size/2 + square_x_offset))
-                vy = 10*(y - (square_size/2 + square_y_offset))
+                vx = strength_factor * (10 * (x - (square_size/2 + square_x_offset)))
+                vy = strength_factor * (10 * (y - (square_size/2 + square_y_offset)))
                 sim.add_velocity((x, y), (vx, vy))
                 
-    elif (velocity_field == 'Spiral'):
-        print('Spiral velocity confirmed')
+    elif velocity_field_code == VELOCITY_FIELD_CODE_SPIRAL:
+        strength_factor = 0.05
+
         for x in range(int(square_x_offset/2), 2*square_size + square_x_offset):
             for y in range(int(square_y_offset/2), 2*square_size + square_y_offset):
                 # modulating velocity by Y-component
                 
-                x_diff = x - (square_size/2 + square_x_offset)
-                y_diff = y - (square_size/2 + square_y_offset)
-                if x_diff>0:
+                x_diff = x - (square_size//2 + square_x_offset)
+                y_diff = y - (square_size//2 + square_y_offset)
+                if x_diff > 0:
                     theta = math.atan(y_diff/(x_diff+.00001))
-                
+
                 else:
                     theta = math.atan(y_diff/(x_diff+.00001)) + math.pi
                 """
@@ -71,192 +96,63 @@ def reset_sim(sim, velocity_field):
                 
                 vx = 100*rad*(math.sin(theta))
                 vy = 100*rad*(math.cos(theta))
-                sim.add_velocity((x, y), (vx, vy))
-    elif (velocity_field == 'Up'):
-        for x in range(square_x_offset, square_size + square_x_offset):
-            for y in range(square_y_offset, square_size + square_y_offset):
-                vx = 0
-                vy = 100
-                sim.add_velocity((x, y), (vx, vy))
-    else:
-        print('Error in velo field')
-        
-                
-    """
-    
-    for x in range(square_x_offset, square_size + square_x_offset):
-        for y in range(square_y_offset, square_size + square_y_offset):
-            # modulating velocity by Y-component
-            yn = math.pi * (y / square_size)
-            vx = square_x_velocity
-            vy = square_y_velocity * math.sin(yn)
-            sim.add_velocity((x, y), (vx, vy))
-    """
 
-    
+                vx *= strength_factor
+                vy *= strength_factor
+
+                sim.add_velocity((x, y), (vx, vy))
+
+    elif velocity_field_code == VELOCITY_FIELD_CODE_UP or velocity_field_code == VELOCITY_FIELD_CODE_DOWN:
+        strength_factor = 100.0
+
+        for x in range(0, square_size):
+            for y in range(0, square_size):
+                vx = 0
+                vy = -100
+
+                vx *= strength_factor
+                vy *= strength_factor
+
+                if velocity_field_code == VELOCITY_FIELD_CODE_UP:
+                    sim.add_velocity((x, y), (vx, vy))
+                elif velocity_field_code == VELOCITY_FIELD_CODE_DOWN:
+                    sim.add_velocity((x, y), (vx, -vy))
+
+    elif velocity_field_code == VELOCITY_FIELD_CODE_NONE:
+        # do nothing.
+        pass
+
+    else:
+        print(f'Invalid velocity field code: {velocity_field_code}')
+        raise NotImplementedError("Invalid velocity field selected in menu.")
 
 
 def main():
     # configuring:
     pygame.font.init()
-    debug_font = pygame.font.SysFont("monospace", 15)
-    viscosity_input = 1
-    diffusion_input = 1
-    time_rate_input = .01
-    draw_grid_cells = False
+    # debug_font = pygame.font.SysFont("monospace", 15)
+    debug_font = pygame.font.Font("./fonts/Nanum_Gothic_Coding/NanumGothicCoding-Regular.ttf", 15)
+    draw_grid_lines = False
     grid_size = 16
     sim_size = 32
     window_size = sim_size * grid_size
     grid_color = (0xff, 0xff, 0xff, 0x80)
-    velocity_field = 'Outflow'
-    # setting up initial state:
-    sim = create_sim(sim_size,viscosity_input, diffusion_input, time_rate_input,velocity_field)
+    active_v_field_menu_index = 0
 
+    # setting up initial state for the simulation using config:
+    sim = create_sim(sim_size)
+
+    # these variables are used to display frame-rate statistics during the simulation:
     frame_index = 0
     last_frame_time = datetime.now()
 
     #
-    # defining handler callbacks:
+    # Defining App callbacks:
+    # - what to do to 'init', 'de_init', 'render', 'update', or if the user opens the 'main_menu'
     #
-    """
-    def output():
-        # Get text in the textbox
-        print(viscosity_input.getText())
-    """
 
-    reset_button = None
-    textbox = None
-    viscosity_text = None
-    viscosity_input = None
-    slider = None
-    menu = None
-    #sim = None
     def init_cb(screen, listener_list):
-        nonlocal reset_button, textbox, viscosity_text, viscosity_input, slider, menu, sim, velocity_field
-        #NEED TO CALL BACK MENU
-        #velocity_field = 'Outflow'
-        def set_difficulty(value, difficulty):
-        # Do the job here !
-            pass
-    
-        def start_the_game():
-            nonlocal menu, sim, velocity_field
-            # Do the job here !
-            print('started')
-            
-            #want to begin the simulation now
-            #save all the relevant info (velocity field, viscosity, density, etc) pass into the simulation function
-            widget = menu.get_widget('Viscosity Input')
-            viscosity_input =widget.get_value()
-            sim.viscosity = float(viscosity_input)
-            print(viscosity_input)
-            
-            widget = menu.get_widget('Diffusion Input')
-            diffusion_input =widget.get_value()
-            sim.diffusion = float(diffusion_input)
-            print(diffusion_input)
-            
-            widget = menu.get_widget('Time Rate Input')
-            time_step_input =widget.get_value()
-            sim.time_rate = float(time_step_input)
-            print(time_step_input)
-            
-            widget = menu.get_widget('Velocity Field')
-            selected_velocity_field = widget.get_value()
-            velocity_field = selected_velocity_field[0][0]
-            print(selected_velocity_field)
-            
-            #close out the menu
-            pygame_menu.events.CLOSE
-            menu.disable()
-            
-        def reset_menu():
-            nonlocal menu, sim
-            menu = pygame_menu.Menu(400, 500, 'Welcome',
-                           theme=pygame_menu.themes.THEME_BLUE)
-    
-            menu.add.text_input('Viscosity Input: ', default='.1', textinput_id='Viscosity Input')
-            menu.add.text_input('Diffusion Input: ', default='1', textinput_id='Diffusion Input')
-            menu.add.text_input('Time Rate Input: ', default='.001', textinput_id='Time Rate Input')
-            
-            velocity_fields = [('Spiral', 1), ('Outflow', 2), ('Up', 3)]
-            menu.add.selector('Velocity Field: ', velocity_fields, onchange=set_difficulty, selector_id='Velocity Field')
-            menu.add.button('Play', start_the_game, button_id='Play Button')
-            menu.add.button('Quit', pygame_menu.events.EXIT)
-            
-            menu.mainloop(screen)
-            reset_sim(sim, velocity_field)
-            
-            #pass
-             
-        reset_button = Button(
-            screen, window_size/10, window_size*9/10, 80, 50, text='Reset Simulation',
-            fontSize=13, margin=5,
-            inactiveColour=(125, 125, 125), hoverColour=(200, 0, 0),
-            pressedColour=(0, 255, 0), radius=0,
-            onRelease=reset_menu
-        )
-        """
-        textbox = TextBox(
-            screen, 100, 500, 300, 80, fontSize=50,
-            borderColour=(255, 0, 0), textColour=(0, 200, 0),
-            onSubmit=output, radius=10, borderThickness=5
-        )
-        viscosity_text = TextBox(
-            screen, 100, 250, 75, 25, fontSize=15, colour=(255, 255, 255),
-            borderColour=(255, 255, 255), textColour=(0, 0, 0),
-            onSubmit=lambda: print(viscosity_text.getText()), radius=0, borderThickness=5
-        )
-        viscosity_text.setText("Viscosity: ")
-        viscosity_input = TextBox(
-            screen, 175, 250, 100, 25, fontSize=15, colour=(255, 255, 255),
-            borderColour=(0, 0, 0), textColour=(0, 200, 0),
-            onSubmit=lambda: print(viscosity_input.getText()), radius=0, borderThickness=5
-        )
-        slider = Slider(screen, 100, 100, 300, 40, min=1, max=100, step=1)
-        """
-        listener_list += [reset_button]
-        
-            # trying out pygame menu
-        
-        
-        #Create Menu 
-            
-        menu = pygame_menu.Menu(400, 500, 'Welcome',
-                           theme=pygame_menu.themes.THEME_BLUE)
-    
-        menu.add.text_input('Viscosity Input: ', default='.1', textinput_id='Viscosity Input')
-        menu.add.text_input('Diffusion Input: ', default='1', textinput_id='Diffusion Input')
-        menu.add.text_input('Time Rate Input: ', default='.001', textinput_id='Time Rate Input')
-        velocity_fields = [('Spiral', 1), ('Outflow', 2)]
-        menu.add.selector('Velocity Field: ', velocity_fields, onchange=set_difficulty, selector_id='Velocity Field')
-        menu.add.button('Play', start_the_game, button_id='Play Button')
-        menu.add.button('Quit', pygame_menu.events.EXIT)
-        
-        menu.mainloop(screen)
-        
-        #get all relevant values from main menu
-        """
-        widget = menu.get_widget('Viscosity Input')
-        viscosity_input = float(widget.get_value())
-        print(viscosity_input)
-        
-        widget = menu.get_widget('Diffusion Input')
-        diffusion_input = float(widget.get_value())
-        print(diffusion_input)
-        
-        widget = menu.get_widget('Time Step Input')
-        time_rate_input = float(widget.get_value())
-        print(time_rate_input)
-        
-        widget = menu.get_widget('Velocity Field')
-        selected_velocity_field = widget.get_value()
-        print(selected_velocity_field)
-        """
-        
-        #create simulation with values from the menu
-        #sim = create_sim(sim_size, viscosity_input, diffusion_input, time_rate_input)
-        #sim1 = create_sim(sim_size,viscosity_input, diffusion_input, time_rate_input)
+        pass
 
     def render_cb(screen):
         nonlocal frame_index, last_frame_time
@@ -267,12 +163,21 @@ def main():
             sim.step()
 
         #
-        # presenting:
+        # acquiring density and velocity arrays and ranges:
         #
 
         density_array = sim.dump_density_array()
+        min_density = density_array.min()
+        max_density = density_array.max()
+        assert min_density < max_density
+
         vx_array = sim.dump_vx_array()
         vy_array = sim.dump_vy_array()
+
+        #
+        # presenting:
+        #
+
         for grid_x in range(sim.size):
             for grid_y in range(sim.size):
                 # updating this cell's pixel rectangle:
@@ -283,20 +188,30 @@ def main():
                     (grid_y + 1) * grid_size
                 )
 
-                # converting the density to a constant in [0,255]:
-                density = density_array[sim.ix(grid_x, grid_y)]
-                try:
-                    z = int(255.0 * density)
-                    z = min(max(z, 0), 255)
-                    color = (z, z, z)
-                except ValueError:
-                    color = (255, 0, 0)
+                # acquiring a density and velocity readings:
+                cell_index = sim.ix(grid_x, grid_y)
+                density = density_array[cell_index]
+                vx, vy = vx_array[cell_index], vy_array[cell_index]
+
+                # converting the density to a constant in [0,255]
+                # converting the velocities into constants in [0,255]
+                # - NOTE: varying the 'brightness' of velocity linearly with density:
+                density_normalized = (density - min_density) / max_density
+
+                density_byte = normal_float_to_byte(density_normalized)
+
+                # ensuring non-zero density is represented by the faintest value possible:
+                if density > 0 and density_byte == 0:
+                    density_byte = 1
+
+                # encoding density as an RGBA tuple:
+                color = (density_byte, density_byte, density_byte)
 
                 # setting the color:
                 screen.fill(color, rect=pixel_rect)
 
                 # drawing a bounding grid rectangle:
-                if draw_grid_cells:
+                if draw_grid_lines:
                     pygame.draw.rect(screen, grid_color, pixel_rect, width=1)
 
                 # screen.set_at((grid_x, grid_y), color)
@@ -306,31 +221,180 @@ def main():
 
         frame_time = (this_frame_time - last_frame_time).microseconds / 1e6
         frame_rate = 1.0 / frame_time
-        frame_time_s = str(frame_time)[:6]
-        frame_rate_s = str(frame_rate)[:6]
-        report = f"[ix={frame_index} | dt={frame_time_s} | fps={frame_rate_s}]"
-        label = debug_font.render(report, False, (0xff, 0xff, 0xff, 0xff))
-        screen.blit(label, (window_size - 300, window_size - 25))
+        frame_time_s = f"{frame_time:.3f}"
+        frame_rate_s = f"{frame_rate:.3f}"
+        density_s = f"ρ ∈ [{min_density:.3f}, {max_density:.3f}]"
+        assert min_density < max_density
+        report = f"[ix={frame_index} | dt={frame_time_s} | fps={frame_rate_s} | {density_s}]"
+        stats_label = debug_font.render(report, False, (0xff, 0xff, 0xff, 0xff))
+        screen.blit(stats_label, (window_size - 500, window_size - 25))
 
         frame_index += 1
         last_frame_time = this_frame_time
 
-        # drawing GUI widgets:
-        #slider.draw()
-        #viscosity_text.draw()
-        #viscosity_input.draw()
-        reset_button.draw()
-        
-
+        # drawing instructions to press 'escape' or 'space' to open the main menu:
+        text = f"Press [SPACE], [ESCAPE], or [RETURN] to open the menu."
+        help_label = debug_font.render(text, False, (0xff, 0xff, 0xff, 0xff))
+        screen.blit(help_label, (window_size - 500, window_size - 50))
 
         # debug: ensure we actually render
         # screen.fill((255, 0, 0))
 
+    def run_main_menu_cb(screen):
+        nonlocal sim, active_v_field_menu_index, draw_grid_lines
+
+        # Writing callbacks:
+        # - these functions are called by PyGame-Menu when the user clicks a button or enters text.
+        # - these functions update shared variables so that menu state is 'sticky' when we reopen the menu.
+        #   - exception is 'keep_app_running' which, once set to False, terminates flow.
+        #   - exception is 'clear_sim_state', which is always 'False' by default.
+        #   - `sim`, `active_v_field_menu_index`, `draw_grid_cells` are used to store such persistent properties.
+        # - they must be written before the widgets they are bound to, so (SEE BELOW) for nonlocal vars.
+
+        keep_running_app = True
+        clear_sim_state = False
+        active_v_field_code = DEFAULT_VELOCITY_FIELD_CODE
+
+        def exit_main_menu_cb(*args):
+            nonlocal menu_widget
+            menu_widget.disable()
+
+        def exit_main_menu_and_reset_cb(*args):
+            nonlocal clear_sim_state
+            clear_sim_state = True
+            exit_main_menu_cb()
+
+        def exit_game_cb(*args):
+            nonlocal keep_running_app
+            keep_running_app = False
+            exit_main_menu_cb()
+
+        def set_active_v_field_code(key, code):
+            nonlocal active_v_field_code, active_v_field_menu_index
+            _, active_v_field_menu_index = key
+            active_v_field_code = code
+
+        def help_get_float_prop_from_text_input_widget(text_input_widget):
+            ok = True
+            try:
+                value = float(text_input_widget.get_value())
+            except ValueError:
+                ok = False
+                value = None
+
+            if ok:
+                # todo: set widget background color to green
+                alarming_pink_color = (255, 171, 171)
+                text_input_widget.background_color = alarming_pink_color
+            else:
+                calming_white_color = (255, 255, 255)
+                text_input_widget.background_color = calming_white_color
+                # todo: set widget background color to red
+
+            return value
+
+        def set_viscosity_cb(*args):
+            parsed_val = help_get_float_prop_from_text_input_widget(viscosity_input_widget)
+            if parsed_val is not None:
+                sim.viscosity = parsed_val
+
+        def set_diffusion_cb(*args):
+            parsed_val = help_get_float_prop_from_text_input_widget(diffusion_input_widget)
+            if parsed_val is not None:
+                sim.diffusion = parsed_val
+
+        def set_time_rate_cb(*args):
+            parsed_val = help_get_float_prop_from_text_input_widget(time_rate_input_widget)
+            if parsed_val is not None:
+                sim.time_rate = parsed_val
+
+        def toggle_grid_line_cb(key, value):
+            nonlocal draw_grid_lines
+            draw_grid_lines = value
+
+        #
+        # Create the menu widgets:
+        #
+
+        # menu-widget contains all other widgets:
+        menu_widget = pygame_menu.Menu(title='§ Interactive Fluids §', width=window_size, height=window_size,
+                                       theme=pygame_menu.themes.THEME_BLUE)
+        menu = menu_widget
+
+        # the `play` button returns to the simulation.
+        # - NOTE: this button should be first, for easy return.
+        play_btn = menu.add.button("Continue...", exit_main_menu_cb)
+
+        # the `reset` button returns to the simulation, but wipes clear all density and velocity state first:
+        reset_btn = menu.add.button("Reset...", exit_main_menu_and_reset_cb)
+
+        # these widgets help configure global sim properties:
+        # - note these properties are not reset by `reset_sim`
+        viscosity_input_widget = menu.add.text_input("Viscosity Input:", default=str(sim.viscosity),
+                                                     onchange=set_viscosity_cb)
+        diffusion_input_widget = menu.add.text_input("Diffusion Input:", default=str(sim.diffusion),
+                                                     onchange=set_diffusion_cb)
+        time_rate_input_widget = menu.add.text_input("Time Rate Input:", default=str(sim.time_rate),
+                                                     onchange=set_time_rate_cb)
+
+        # this widget allows the user to select the initial velocity field.
+        # - we just add a little bump and then leave the simulation to its own devices
+        # - re-opening the menu adds a new bump!
+        velocity_fields = [
+            ("None", VELOCITY_FIELD_CODE_NONE),
+            ("Spiral", VELOCITY_FIELD_CODE_SPIRAL),
+            ("Outflow", VELOCITY_FIELD_CODE_OUTFLOW),
+            ("Upward", VELOCITY_FIELD_CODE_UP),
+            ("Downward", VELOCITY_FIELD_CODE_DOWN)
+        ]
+        v_field_select_widget = menu.add.selector("Add Velocity Field:", velocity_fields,
+                                                  onchange=set_active_v_field_code,
+                                                  default=active_v_field_menu_index)
+
+        # # this widget controls whether or not grid cells are drawn:
+        grid_opts = [
+            ("Off", False),
+            ("On", True)
+        ]
+        default_ix = int(draw_grid_lines)       # 0 or 1? it indexes the right option.
+        grid_widget = menu.add.selector("Grid Lines", grid_opts, onchange=toggle_grid_line_cb, default=default_ix)
+
+        # thie widget allows the user to exit the whole app:
+        quit_btn = menu.add.button("Quit", exit_game_cb)
+
+        # Unfortunately, PyGame-Menu uses its own blocking render loop.
+        # We call it here.
+        # After this function, all above callbacks will have run to completion to finish configuring the `sim` instance
+        # or other variables used to further change the sim.
+        menu.mainloop(screen)
+
+        # `reset_sim` places initial velocities and densities
+        reset_sim(sim, velocity_field_code=active_v_field_code, clear_all=clear_sim_state)
+
+        # Returning whether or not to keep the app running:
+        return keep_running_app
+
+    def de_init_cb():
+        pass
+
     # running the app:
     app.run(
         window_size, window_size,
-        "demo-3", init_cb=init_cb, render_cb=render_cb, desired_updates_per_sec=60
+        "demo-3",
+        init_cb=init_cb,
+        render_cb=render_cb,
+        run_menu_cb=run_main_menu_cb,
+        de_init_cb=de_init_cb,
+        desired_updates_per_sec=60
     )
+
+
+def normal_float_to_byte(x, default=0):
+    try:
+        xi = abs(int(255.0 * x))
+        return max(0, min(255, xi))
+    except ValueError:
+        return default
 
 
 if __name__ == "__main__":
